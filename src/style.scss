@@ -1,0 +1,23 @@
+* {
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+}
+
+body {
+  background-color: #aaa;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+canvas#game-canvas {
+  background-color: #ddd;
+  width: 400px;
+  transform: translateX(-50%);
+  left: 50%;
+}
