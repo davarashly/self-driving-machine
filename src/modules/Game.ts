@@ -1,18 +1,21 @@
-import { Canvas } from "@/modules"
+import { Canvas, drawNetwork } from "@/modules"
 import { Car, Road } from "@/models"
 import { CarTypeEnum } from "@/common/enums"
 import { Traffic } from "@/common/types"
 
 export class Game {
   private gameCanvas: Canvas
+  private networkCanvas: Canvas
   private overlayCanvas: Canvas
   private road: Road
   private car: Car
   private readonly traffic: Traffic
+  private prevTimeStamp = 0
   private fps: number
 
   constructor() {
     this.gameCanvas = new Canvas("#game-canvas")
+    this.networkCanvas = new Canvas("#network-canvas", "66%")
     this.overlayCanvas = new Canvas("#overlay-canvas", "100%")
     const canvasElement = this.gameCanvas.getCanvas()
 
@@ -20,16 +23,16 @@ export class Game {
     this.car = new Car(
       this.road.getLaneCenter(Math.floor(this.road.getLaneCount() / 2)),
       canvasElement.height / 2,
-      50,
-      80,
-      CarTypeEnum.PLAYER
+      this.road.laneWidth * 0.45,
+      this.road.laneWidth * 0.7,
+      CarTypeEnum.AI_PLAYER
     )
     this.traffic = [
       new Car(
         this.road.getLaneCenter(Math.floor(this.road.getLaneCount() / 2)),
         canvasElement.height / 2 - 300,
-        50,
-        80
+        this.road.laneWidth * 0.45,
+        this.road.laneWidth * 0.7
       )
     ]
 
@@ -37,7 +40,7 @@ export class Game {
   }
 
   startGame() {
-    this.game()
+    this.game(0)
   }
 
   drawFPS() {
@@ -47,19 +50,19 @@ export class Game {
   drawOverlayText(text: string, color: string) {
     const overlayCtx = this.overlayCanvas.getContext()
 
-    overlayCtx.font = "bold 40px Arial"
+    overlayCtx.font = "bold 30px Arial"
     overlayCtx.strokeStyle = "#000"
-    overlayCtx.lineWidth = 2
+    overlayCtx.lineWidth = 1.75
     overlayCtx.fillStyle = color
-    overlayCtx.fillText(text, window.innerWidth - 200, 100)
-    overlayCtx.strokeText(text, window.innerWidth - 200, 100)
+    overlayCtx.fillText(text, window.innerWidth - 150, 50)
+    overlayCtx.strokeText(text, window.innerWidth - 150, 50)
   }
 
   drawGameOver() {
     this.drawOverlayText("WASTED", "red")
   }
 
-  private game(prevTimeStamp = Date.now()) {
+  private game(prevTimeStamp: number) {
     const [gameCanvasElement, gameCtx] = [
       this.gameCanvas.getCanvas(),
       this.gameCanvas.getContext()
@@ -71,6 +74,7 @@ export class Game {
     }
 
     this.gameCanvas.updateWindow()
+    this.networkCanvas.updateWindow()
     this.overlayCanvas.updateWindow()
 
     gameCtx.save()
@@ -85,18 +89,26 @@ export class Game {
 
     gameCtx.restore()
 
+    if (!this.car.isBot) {
+      const networkCtx = this.networkCanvas.getContext()
+      networkCtx.lineDashOffset = -prevTimeStamp / 50
+
+      drawNetwork(networkCtx, this.car.getBrain()!)
+    }
+
     if (this.car.isDamaged()) {
       this.drawGameOver()
 
       return
     }
 
-    const run = requestAnimationFrame(this.game.bind(this, Date.now()))
+    const run = requestAnimationFrame(this.game.bind(this))
 
     if (run % 60 === 0) {
-      const fpsDelta = (Date.now() - prevTimeStamp) / 1000
+      const fpsDelta = (prevTimeStamp - this.prevTimeStamp) / 1000
       this.fps = Math.floor(1 / fpsDelta)
     }
+    this.prevTimeStamp = prevTimeStamp
 
     this.drawFPS()
   }

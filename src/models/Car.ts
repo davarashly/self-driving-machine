@@ -1,7 +1,7 @@
-import { Controls, Sensors } from "@/models"
-import { Polygon, RoadBorders, Traffic } from "@/common/types"
+import { Controls, NeuralNetwork, Sensor } from "@/models"
+import { Direction, Polygon, RoadBorders, Traffic } from "@/common/types"
 import { IPoint } from "@/common/interfaces"
-import { linearInterpolation, polygonsIntersection } from "@/modules"
+import { inRange, linearInterpolation, polygonsIntersection } from "@/modules"
 import { CarTypeEnum } from "@/common/enums"
 
 export class Car {
@@ -16,15 +16,32 @@ export class Car {
   private angle: number
   private speed: number
   private readonly acceleration: number
-  private readonly rotationModifier = 0.03
+  private readonly rotationModifier = 0.0125
   private readonly friction = 0.05
   private readonly maxSpeed: number
   private readonly maxReverseSpeed: number
 
   private readonly controls: Controls
-  private readonly sensors?: Sensors
+  private readonly sensor?: Sensor
+  private readonly brain?: NeuralNetwork
 
   private polygon: Polygon
+
+  get isAI() {
+    return this.type === CarTypeEnum.AI_PLAYER
+  }
+
+  get isBot() {
+    return this.type === CarTypeEnum.BOT
+  }
+
+  getSize() {
+    return { height: this.height, width: this.width }
+  }
+
+  getBrain() {
+    return this.brain
+  }
 
   constructor(
     x: number,
@@ -48,7 +65,7 @@ export class Car {
     this.damaged = false
 
     this.acceleration = this.type === "bot" ? 0.1 : 1
-    this.maxSpeed = this.type === "bot" ? 1.7 : 3
+    this.maxSpeed = this.type === "bot" ? inRange(0.7, 1.3) : 2.3
     this.maxReverseSpeed = this.maxSpeed * 0.68
 
     this.angle = 0
@@ -57,7 +74,12 @@ export class Car {
     this.controls = new Controls(type)
 
     if (this.type !== "bot") {
-      this.sensors = new Sensors(this)
+      this.sensor = new Sensor(this)
+      this.brain = new NeuralNetwork([
+        this.sensor.getRayCount(),
+        this.sensor.getRayCount() + 2,
+        4
+      ])
     }
 
     this.polygon = []
@@ -87,20 +109,35 @@ export class Car {
     this.moveCar()
     this.polygon = this.createPolygon()
     this.damaged = this.assessDamage(roadBorders, traffic)
-    if (this.sensors) {
-      this.sensors.update(roadBorders, traffic!)
+
+    if (this.sensor && this.brain) {
+      this.sensor.update(roadBorders, traffic!)
+
+      const offsets = this.sensor
+        .getReadings()
+        .map((t) => (!!t ? 1 - t.offset : 0))
+
+      const outputs = NeuralNetwork.feedForward(offsets, this.brain)
+
+      if (this.isAI) {
+        const directions: Direction[] = ["forward", "reverse", "left", "right"]
+
+        for (let i = 0; i < outputs.length; i++) {
+          this.controls.setDirection(directions[i], !!outputs[i])
+        }
+
+        console.log(this.controls)
+      }
     }
   }
 
   private assessDamage(roadBorders: RoadBorders, traffic: Traffic = []) {
-    for (const roadBorder of roadBorders) {
-      if (polygonsIntersection(this.polygon, roadBorder)) {
-        return true
-      }
-    }
-
-    for (const trafficCar of traffic) {
-      if (polygonsIntersection(this.polygon, trafficCar.polygon)) {
+    for (let i = 0; i < Math.max(roadBorders.length, traffic.length); i++) {
+      if (
+        (roadBorders[i] &&
+          polygonsIntersection(this.polygon, roadBorders[i])) ||
+        (traffic[i] && polygonsIntersection(this.polygon, traffic[i].polygon))
+      ) {
         return true
       }
     }
@@ -214,8 +251,8 @@ export class Car {
 
     ctx.fill()
 
-    if (this.sensors) {
-      this.sensors.draw(ctx)
+    if (this.sensor) {
+      this.sensor.draw(ctx)
     }
   }
 }

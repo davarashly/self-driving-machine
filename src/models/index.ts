@@ -1,4 +1,5 @@
 export * from "./Car"
 export * from "./Controls"
 export * from "./Road"
-export * from "./Sensors"
+export * from "./Sensor"
+export * from "./Network"

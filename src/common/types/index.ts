@@ -8,3 +8,5 @@ export type Polygon = IPoint[]
 export type RoadBorders = PointList
 
 export type Traffic = Car[]
+
+export type Direction = "forward" | "reverse" | "left" | "right"

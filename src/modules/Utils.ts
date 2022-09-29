@@ -18,7 +18,7 @@ export const getIntersection = (
     const t = tTop / bottom
     const u = uTop / bottom
 
-    if (inRange(0, 1, t) && inRange(0, 1, u)) {
+    if (isInRange(0, 1, t) && isInRange(0, 1, u)) {
       return {
         x: linearInterpolation(A.x, B.x, t),
         y: linearInterpolation(A.y, B.y, t),
@@ -49,7 +49,7 @@ export const polygonsIntersection = (polygonA: Polygon, polygonB: Polygon) => {
   return false
 }
 
-export const inRange = (
+export const isInRange = (
   a: number,
   b: number,
   number: number,
@@ -60,4 +60,29 @@ export const inRange = (
   const right = includingB ? b >= number : b > number
 
   return left && right
+}
+
+export const inRange = (min: number, max: number) => {
+  // find diff
+  const difference = max - min
+
+  // generate random number
+  let rand = Math.random()
+
+  // multiply with difference
+  rand = rand * difference
+
+  // add with min value
+  rand = rand + min
+
+  return rand
+}
+
+export const getRGBA = (value: number) => {
+  const alpha = Math.abs(value)
+
+  const { r, g, b } =
+    value < 0 ? { r: 0, g: 0, b: 255 } : { r: 255, g: 255, b: 0 }
+
+  return `rgba(${r}, ${g}, ${b}, ${alpha}`
 }

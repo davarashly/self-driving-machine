@@ -37,12 +37,14 @@ export class Road {
     ]
   }
 
-  getLaneCenter(laneIdx: number) {
-    const laneWidth = this.width / this.laneCount
+  get laneWidth() {
+    return this.width / this.laneCount
+  }
 
+  getLaneCenter(laneIdx: number) {
     laneIdx = Math.max(0, Math.min(laneIdx, this.laneCount - 1))
 
-    return this.left + laneWidth * (0.5 + laneIdx)
+    return this.left + this.laneWidth * (0.5 + laneIdx)
   }
 
   getBorders() {

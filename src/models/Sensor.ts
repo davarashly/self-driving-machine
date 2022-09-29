@@ -3,16 +3,18 @@ import { getIntersection, linearInterpolation } from "@/modules"
 import { IPoint } from "@/common/interfaces"
 import { Intersection, PointList, RoadBorders, Traffic } from "@/common/types"
 
-export class Sensors {
+export class Sensor {
   private readonly car: Car
   private readonly rayCount = 5
-  private readonly rayLength = 250
+  private readonly rayLength: number
   private readonly raySpread = Math.PI / 2
   private readonly rays: PointList
   private readonly readings: Intersection[]
 
   constructor(car: Car) {
     this.car = car
+
+    this.rayLength = this.car.getSize().height * 2.5
 
     this.rays = []
     this.readings = []
@@ -25,6 +27,14 @@ export class Sensors {
     for (let i = 0; i < this.rayCount; i++) {
       this.readings.push(this.getReading(this.rays[i], roadBorders, traffic))
     }
+  }
+
+  getRayCount() {
+    return this.rayCount
+  }
+
+  getReadings() {
+    return this.readings
   }
 
   private getReading(
@@ -100,7 +110,7 @@ export class Sensors {
       const end = this.readings[i] || this.rays[i][1]
 
       ctx.beginPath()
-      ctx.lineWidth = 2
+      ctx.lineWidth = 3
       ctx.strokeStyle = "yellow"
       ctx.moveTo(this.rays[i][0].x, this.rays[i][0].y)
       ctx.lineTo(end.x, end.y)
@@ -115,7 +125,7 @@ export class Sensors {
       }
 
       ctx.beginPath()
-      ctx.lineWidth = 2
+      ctx.lineWidth = 3
       ctx.strokeStyle = "black"
       ctx.moveTo(this.rays[i][1].x, this.rays[i][1].y)
       ctx.lineTo(end.x, end.y)

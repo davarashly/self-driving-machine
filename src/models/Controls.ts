@@ -1,4 +1,5 @@
 import { CarTypeEnum } from "@/common/enums"
+import { Direction } from "@/common/types"
 
 export class Controls {
   private forward: boolean
@@ -22,6 +23,10 @@ export class Controls {
       case CarTypeEnum.AI_PLAYER:
         break
     }
+  }
+
+  setDirection(direction: Direction, value: boolean) {
+    this[direction] = value
   }
 
   addKeyListeners() {
