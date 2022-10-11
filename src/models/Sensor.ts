@@ -5,16 +5,16 @@ import { Intersection, PointList, RoadBorders, Traffic } from "@/common/types"
 
 export class Sensor {
   private readonly car: Car
-  private readonly rayCount = 5
+  private readonly rayCount = 7
   private readonly rayLength: number
-  private readonly raySpread = Math.PI / 2
+  private readonly raySpread = Math.PI / 1.5
   private readonly rays: PointList
   private readonly readings: Intersection[]
 
   constructor(car: Car) {
     this.car = car
 
-    this.rayLength = this.car.getSize().height * 2.5
+    this.rayLength = this.car.getSize().height * 3
 
     this.rays = []
     this.readings = []

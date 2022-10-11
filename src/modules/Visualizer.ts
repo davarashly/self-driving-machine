@@ -52,27 +52,20 @@ const drawLevel = (
 
   const nodeRadius = 30
 
-  const [levelInputs, levelOutputs, levelWeights, levelBiases] = [
-    level.getInputs(),
-    level.getOutputs(),
-    level.getWeights(),
-    level.getBiases()
-  ]
-
-  for (let i = 0; i < levelInputs.length; i++) {
-    for (let j = 0; j < levelOutputs.length; j++) {
+  for (let i = 0; i < level.inputs.length; i++) {
+    for (let j = 0; j < level.outputs.length; j++) {
       ctx.beginPath()
-      ctx.moveTo(getNodeX(levelInputs, i, left, right), bottom)
-      ctx.lineTo(getNodeX(levelOutputs, j, left, right), top)
+      ctx.moveTo(getNodeX(level.inputs, i, left, right), bottom)
+      ctx.lineTo(getNodeX(level.outputs, j, left, right), top)
       ctx.lineWidth = 2
 
-      ctx.strokeStyle = getRGBA(levelWeights[i][j])
+      ctx.strokeStyle = getRGBA(level.weights[i][j])
       ctx.stroke()
     }
   }
 
-  for (let i = 0; i < levelInputs.length; i++) {
-    const x = getNodeX(levelInputs, i, left, right)
+  for (let i = 0; i < level.inputs.length; i++) {
+    const x = getNodeX(level.inputs, i, left, right)
 
     ctx.beginPath()
     ctx.arc(x, bottom, nodeRadius, 0, Math.PI * 2)
@@ -80,12 +73,12 @@ const drawLevel = (
     ctx.fill()
     ctx.beginPath()
     ctx.arc(x, bottom, nodeRadius * 0.6, 0, Math.PI * 2)
-    ctx.fillStyle = getRGBA(levelInputs[i])
+    ctx.fillStyle = getRGBA(level.inputs[i])
     ctx.fill()
   }
 
-  for (let i = 0; i < levelOutputs.length; i++) {
-    const x = getNodeX(levelOutputs, i, left, right)
+  for (let i = 0; i < level.outputs.length; i++) {
+    const x = getNodeX(level.outputs, i, left, right)
 
     ctx.beginPath()
     ctx.arc(x, top, nodeRadius, 0, Math.PI * 2)
@@ -93,13 +86,13 @@ const drawLevel = (
     ctx.fill()
     ctx.beginPath()
     ctx.arc(x, top, nodeRadius * 0.6, 0, Math.PI * 2)
-    ctx.fillStyle = getRGBA(levelOutputs[i])
+    ctx.fillStyle = getRGBA(level.outputs[i])
     ctx.fill()
 
     ctx.beginPath()
     ctx.lineWidth = 2
     ctx.arc(x, top, nodeRadius * 0.8, 0, Math.PI * 2)
-    ctx.strokeStyle = getRGBA(levelBiases[i])
+    ctx.strokeStyle = getRGBA(level.biases[i])
     ctx.setLineDash([6, 6])
     ctx.stroke()
     ctx.setLineDash([])

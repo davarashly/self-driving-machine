@@ -21,6 +21,7 @@ canvas#overlay-canvas {
   position: absolute;
   top: 0;
   left: 0;
+  pointer-events: none;
 }
 
 canvas#game-canvas {
@@ -33,4 +34,20 @@ canvas#network-canvas {
   width: 66%;
   right: 0;
   left: unset;
+}
+
+.btns {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+
+  button {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid black;
+    border-radius: 1rem;
+    cursor: pointer;
+  }
 }

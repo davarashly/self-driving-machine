@@ -9,10 +9,24 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <script type="module" src="src/app.ts" defer></script>
     <title>Self-Driving Car</title>
+    <style>
+      body,
+      html {
+        background-color: #aaa;
+      }
+    </style>
   </head>
   <body>
     <div class="wrap">
       <canvas id="game-canvas"></canvas>
+      <div class="btns">
+        <button class="save-level">💾</button>
+        <br />
+        <br />
+        <button class="save">💾</button>
+        <button class="delete">🗑️</button>
+        <label><input type="checkbox" /> Auto save </label>
+      </div>
       <canvas id="network-canvas"></canvas>
       <canvas id="overlay-canvas"></canvas>
     </div>

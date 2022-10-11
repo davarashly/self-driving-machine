@@ -1,8 +1,10 @@
 import { Controls, NeuralNetwork, Sensor } from "@/models"
 import { Direction, Polygon, RoadBorders, Traffic } from "@/common/types"
-import { IPoint } from "@/common/interfaces"
+import { IPoint, LevelData } from "@/common/interfaces"
 import { inRange, linearInterpolation, polygonsIntersection } from "@/modules"
 import { CarTypeEnum } from "@/common/enums"
+
+const speedModifier = 2
 
 export class Car {
   private x: number
@@ -24,6 +26,8 @@ export class Car {
   private readonly controls: Controls
   private readonly sensor?: Sensor
   private readonly brain?: NeuralNetwork
+
+  static damagedCarsAmount = 0
 
   private polygon: Polygon
 
@@ -65,7 +69,9 @@ export class Car {
     this.damaged = false
 
     this.acceleration = this.type === "bot" ? 0.1 : 1
-    this.maxSpeed = this.type === "bot" ? inRange(0.7, 1.3) : 2.3
+    this.maxSpeed =
+      (this.type === "bot" ? inRange(0.7, 1.3) : 2.3) * speedModifier
+    // this.maxSpeed = (this.type === "bot" ? 1 : 2.3) * speedModifier
     this.maxReverseSpeed = this.maxSpeed * 0.68
 
     this.angle = 0
@@ -105,7 +111,35 @@ export class Car {
     return this.polygon
   }
 
-  update(roadBorders: RoadBorders, traffic?: Traffic) {
+  setBrain(brain: LevelData[]) {
+    this.brain!.setLevels(brain)
+  }
+
+  update(
+    roadBorders: RoadBorders,
+    traffic?: Traffic,
+    bestCar?: Car,
+    cars?: Car[]
+  ) {
+    if (this.damaged) {
+      return
+    }
+
+    if (
+      bestCar &&
+      !this.isBot &&
+      (Math.abs(bestCar.getY() - this.y) >= 500 ||
+        (traffic &&
+          traffic.sort((t1, t2) => t1.y - t2.y)[0].y > this.y &&
+          (bestCar.x !== this.x ||
+            bestCar.y !== this.y ||
+            cars!.length - Car.damagedCarsAmount === 1)))
+    ) {
+      this.damaged = true
+      Car.damagedCarsAmount++
+      return
+    }
+
     this.moveCar()
     this.polygon = this.createPolygon()
     this.damaged = this.assessDamage(roadBorders, traffic)
@@ -125,8 +159,6 @@ export class Car {
         for (let i = 0; i < outputs.length; i++) {
           this.controls.setDirection(directions[i], !!outputs[i])
         }
-
-        console.log(this.controls)
       }
     }
   }
@@ -138,6 +170,7 @@ export class Car {
           polygonsIntersection(this.polygon, roadBorders[i])) ||
         (traffic[i] && polygonsIntersection(this.polygon, traffic[i].polygon))
       ) {
+        Car.damagedCarsAmount++
         return true
       }
     }
@@ -235,7 +268,7 @@ export class Car {
     })
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
+  draw(ctx: CanvasRenderingContext2D, showSensors = true) {
     ctx.strokeStyle = this.damaged ? "#a00" : "#000"
     ctx.fillStyle = this.damaged ? "#f00" : this.color
 
@@ -251,7 +284,7 @@ export class Car {
 
     ctx.fill()
 
-    if (this.sensor) {
+    if (showSensors && this.sensor) {
       this.sensor.draw(ctx)
     }
   }

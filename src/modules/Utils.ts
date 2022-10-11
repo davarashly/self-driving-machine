@@ -62,7 +62,7 @@ export const isInRange = (
   return left && right
 }
 
-export const inRange = (min: number, max: number) => {
+export const inRange = (min: number, max: number, int = false) => {
   // find diff
   const difference = max - min
 
@@ -75,7 +75,7 @@ export const inRange = (min: number, max: number) => {
   // add with min value
   rand = rand + min
 
-  return rand
+  return int ? Math.round(rand) : rand
 }
 
 export const getRGBA = (value: number) => {
